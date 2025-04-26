@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -8,6 +9,13 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+   experimental: {
+    serverActions: {
+        allowedOrigins: ["localhost:9002"], // Add your deployment domain here as well
+        // You might need bodySizeLimit if dealing with large file uploads via actions
+        // bodySizeLimit: '5mb',
+    },
+   },
   images: {
     remotePatterns: [
       {
