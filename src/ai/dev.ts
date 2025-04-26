@@ -1,3 +1,3 @@
+
 import '@/ai/flows/summarize-terms-and-conditions.ts';
-// Removed: import '@/ai/flows/tailor-summary-to-document-type.ts';
-```
+import '@/ai/flows/text-to-speech-flow.ts'; // Add import for the new TTS flow

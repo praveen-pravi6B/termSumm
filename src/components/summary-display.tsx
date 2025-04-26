@@ -1,10 +1,14 @@
 
 import * as React from 'react';
+import { useState } from 'react'; // Import useState
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, ShieldCheck, Users, Handshake, Info, FileQuestion, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Button } from '@/components/ui/button'; // Import Button
+import { FileText, ShieldCheck, Users, Handshake, Info, FileQuestion, ThumbsUp, ThumbsDown, Volume2, Loader2 } from 'lucide-react'; // Import icons
+import { serverGenerateAudio } from '@/app/actions'; // Import the server action
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 import type { SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
 
 
@@ -36,12 +40,50 @@ const getDocumentStyle = (docType: string | undefined) => {
 // Use React.forwardRef to allow passing a ref to the Card component
 export const SummaryDisplay = React.forwardRef<HTMLDivElement, SummaryDisplayProps>(
     ({ summaryData }, ref) => {
+        const [isAudioLoading, setIsAudioLoading] = useState(false);
+        const [audioSrc, setAudioSrc] = useState<string | null>(null);
+        const { toast } = useToast();
+
         if (!summaryData) {
             return null; // Don't render anything if there's no summary
         }
 
         const { summary, identifiedDocumentType, pros, cons } = summaryData;
         const { icon, color } = getDocumentStyle(identifiedDocumentType);
+
+        const handleGenerateAudio = async () => {
+            if (!summary) return;
+            setIsAudioLoading(true);
+            setAudioSrc(null); // Clear previous audio
+
+            try {
+                const result = await serverGenerateAudio({ text: summary });
+                if (result.audioDataUri) {
+                    setAudioSrc(result.audioDataUri);
+                    toast({
+                        title: "Audio Generated",
+                        description: "Press play to listen to the summary.",
+                    });
+                } else {
+                    console.error("Audio generation failed:", result.errorMessage);
+                    toast({
+                        title: "Audio Generation Failed",
+                        description: result.errorMessage || "Could not generate audio for the summary.",
+                        variant: "destructive",
+                    });
+                }
+            } catch (error) {
+                console.error("Error calling serverGenerateAudio:", error);
+                toast({
+                  title: "Error",
+                  description: "An unexpected error occurred while generating audio.",
+                  variant: "destructive",
+                });
+            } finally {
+                setIsAudioLoading(false);
+            }
+        };
+
 
         const formattedSummary = summary
             .split('\n\n')
@@ -83,7 +125,28 @@ export const SummaryDisplay = React.forwardRef<HTMLDivElement, SummaryDisplayPro
                 </CardHeader>
                 <CardContent>
                     <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2 text-primary">Summary</h3>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold text-primary">Summary</h3>
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleGenerateAudio}
+                                disabled={isAudioLoading || !summary}
+                                aria-label="Listen to summary"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                            >
+                                {isAudioLoading ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <Volume2 className="h-5 w-5" />
+                                )}
+                            </Button>
+                        </div>
+                         {audioSrc && !isAudioLoading && (
+                            <audio controls src={audioSrc} className="w-full mb-4">
+                                Your browser does not support the audio element.
+                            </audio>
+                        )}
                         <ScrollArea className="h-48 w-full rounded-md border p-4 bg-muted/30">
                             <div className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed">
                                 {formattedSummary}
