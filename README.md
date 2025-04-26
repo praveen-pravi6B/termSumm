@@ -37,8 +37,8 @@ TermSumm is a web application built with Next.js that leverages Generative AI (p
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/praveen-pravi6B/termSumm
+    cd termSumm
     ```
 
 2.  **Install dependencies:**
