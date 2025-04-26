@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider"; // Import ThemeProvider
-import { ThemeToggle } from '@/components/theme-toggle'; // Import ThemeToggle
+import { AppBar } from '@/components/app-bar'; // Import AppBar
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -34,9 +34,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="absolute top-4 right-4 z-50"> {/* Position theme toggle */}
-              <ThemeToggle />
-            </div>
+            {/* Add AppBar here */}
+            <AppBar />
+            {/* Remove absolute positioning wrapper for ThemeToggle */}
             {children}
             <Toaster />
          </ThemeProvider>
