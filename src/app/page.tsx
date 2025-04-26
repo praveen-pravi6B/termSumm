@@ -9,17 +9,17 @@ import { handleSummarization } from './actions'; // Import the server action
 import type { SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
 
 export default function Home() {
-  // Update the state type to match the new output type
+  // State type remains SummarizeTermsAndConditionsOutput, but its structure includes pros/cons now
   const [summary, setSummary] = useState<SummarizeTermsAndConditionsOutput | null>(null);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-start p-6 md:p-12 lg:p-24 bg-gradient-to-br from-background via-secondary/10 to-background">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex mb-12">
-         <h1 className="text-3xl md:text-4xl font-bold text-center text-primary mb-4 tracking-tight">
-          TermSumm
+      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex mb-12 text-center">
+         <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4 tracking-tight w-full">
+          TermSumm: AI T&amp;C Analysis
         </h1>
-         <p className="text-center text-muted-foreground">
-          Upload your terms & conditions document to get a quick AI-powered summary.
+         <p className="text-muted-foreground w-full">
+          Upload your terms & conditions for an AI-powered summary, including pros and cons.
         </p>
       </div>
 
@@ -28,7 +28,7 @@ export default function Home() {
         <UploadForm onSubmit={handleSummarization} setSummary={setSummary} />
 
         {/* Pass the summary state to SummaryDisplay */}
-        {/* Ensure SummaryDisplay props match the updated state type */}
+        {/* SummaryDisplay now expects pros/cons within summaryData */}
         {summary && <SummaryDisplay summaryData={summary} />}
       </div>
 
