@@ -27,17 +27,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning> {/* Add suppressHydrationWarning for next-themes */}
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            {/* Add AppBar here */}
             <AppBar />
-            {/* Remove absolute positioning wrapper for ThemeToggle */}
-            {children}
+            {/* Ensure children can grow to fill available space */}
+            <div className="flex-grow flex flex-col">
+                {children}
+            </div>
             <Toaster />
          </ThemeProvider>
       </body>

@@ -62,21 +62,21 @@ export default function Home() {
 
 
   return (
-    // Add pt-20 to account for AppBar height (approx h-16 + padding)
-    <main className="flex min-h-screen flex-col items-center justify-start p-6 pt-20 md:p-12 lg:p-24 bg-gradient-to-br from-background via-secondary/10 to-background">
-      {/* Updated Header Section */}
+    // Use flex-grow to make this main container take available space
+    <main className="flex flex-col flex-grow items-center justify-start p-6 pt-20 md:p-12 lg:p-24 bg-gradient-to-br from-background via-secondary/10 to-background">
+      {/* Header Section */}
       <div className="z-10 w-full max-w-5xl items-center text-center mb-12">
          <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 tracking-tight w-full">
           AI Terms &amp; Conditions Analyzer
         </h1>
-         {/* Ensure subtitle breaks on smaller screens if needed */}
          <p className="text-muted-foreground w-full text-sm md:text-base block">
           Upload any T&amp;C document (PDF, DOCX, TXT) for a clear summary, pros, and cons.
         </p>
       </div>
-      {/* End of Updated Header Section */}
+      {/* End of Header Section */}
 
-      <div className="w-full flex flex-col items-center space-y-8">
+      {/* Content area that grows */}
+      <div className="w-full flex flex-col items-center space-y-8 flex-grow">
         {/* Conditionally render UploadForm based on isLoading state */}
         {!isLoading && (
           <UploadForm
@@ -102,7 +102,8 @@ export default function Home() {
         </div>
       </div>
 
-        <footer className="mt-16 text-center text-sm text-muted-foreground">
+        {/* Fixed Footer - positioned by the flex container */}
+        <footer className="w-full mt-16 py-4 text-center text-sm text-muted-foreground border-t border-border">
             Powered by AI | Created with Firebase Studio
         </footer>
     </main>
