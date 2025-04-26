@@ -5,9 +5,11 @@ import { useState } from 'react';
 import { UploadForm } from '@/components/upload-form';
 import { SummaryDisplay } from '@/components/summary-display';
 import { handleSummarization } from './actions'; // Import the server action
-import type { SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions'; // Import the type
+// Update import path and type name if necessary
+import type { SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
 
 export default function Home() {
+  // Update the state type to match the new output type
   const [summary, setSummary] = useState<SummarizeTermsAndConditionsOutput | null>(null);
 
   return (
@@ -26,6 +28,7 @@ export default function Home() {
         <UploadForm onSubmit={handleSummarization} setSummary={setSummary} />
 
         {/* Pass the summary state to SummaryDisplay */}
+        {/* Ensure SummaryDisplay props match the updated state type */}
         {summary && <SummaryDisplay summaryData={summary} />}
       </div>
 

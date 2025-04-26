@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview A terms and conditions summarization AI agent.
+ * @fileOverview A terms and conditions summarization AI agent that automatically identifies the document type.
  *
  * - summarizeTermsAndConditions - A function that handles the summarization process.
  * - SummarizeTermsAndConditionsInput - The input type for the summarizeTermsAndConditions function.
@@ -11,28 +11,31 @@
 import {ai} from '@/ai/ai-instance';
 import {z} from 'genkit';
 
+// Remove documentType from input schema
 const SummarizeTermsAndConditionsInputSchema = z.object({
   documentDataUri: z
     .string()
     .describe(
       "A document of various formats (e.g., DOC, PDF, TXT), as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  documentType: z.string().describe('The type of the document (e.g., legal, user agreement).'),
 });
 export type SummarizeTermsAndConditionsInput = z.infer<typeof SummarizeTermsAndConditionsInputSchema>;
 
+// Add identifiedDocumentType to output schema
 const SummarizeTermsAndConditionsOutputSchema = z.object({
   summary: z.string().describe('The summarized terms and conditions.'),
-  tone: z.string().describe('The tone of the summary, matching the document type.'),
+  identifiedDocumentType: z.string().describe('The identified type of the document (e.g., legal, user agreement, privacy policy).'),
 });
 export type SummarizeTermsAndConditionsOutput = z.infer<typeof SummarizeTermsAndConditionsOutputSchema>;
 
+// Update the wrapper function signature
 export async function summarizeTermsAndConditions(input: SummarizeTermsAndConditionsInput): Promise<SummarizeTermsAndConditionsOutput> {
   return summarizeTermsAndConditionsFlow(input);
 }
 
 const prompt = ai.definePrompt({
   name: 'summarizeTermsAndConditionsPrompt',
+  // Update input schema reference
   input: {
     schema: z.object({
       documentDataUri: z
@@ -40,23 +43,26 @@ const prompt = ai.definePrompt({
         .describe(
           "A document of various formats (e.g., DOC, PDF, TXT), as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
         ),
-      documentType: z.string().describe('The type of the document (e.g., legal, user agreement).'),
     }),
   },
+  // Update output schema reference
   output: {
     schema: z.object({
-      summary: z.string().describe('The summarized terms and conditions.'),
-      tone: z.string().describe('The tone of the summary, matching the document type.'),
+        summary: z.string().describe('The summarized terms and conditions.'),
+        identifiedDocumentType: z.string().describe('The identified type of the document (e.g., legal, user agreement, privacy policy).'),
     }),
   },
-  prompt: `You are an AI expert in summarization, especially for legal documents.
+  // Update prompt instructions
+  prompt: `You are an AI expert in analyzing and summarizing documents, especially legal and terms & conditions documents.
 
-You will receive a document and its identified type. Your goal is to summarize the terms and conditions of the document and adjust the tone to match the document type.
+You will receive a document. Your tasks are:
+1. Identify the type of the document (e.g., Legal Document, User Agreement, Privacy Policy, Service Agreement, Other). Store this in the 'identifiedDocumentType' field.
+2. Summarize the key terms and conditions of the document.
+3. Ensure the tone and focus of the summary are appropriate for the identified document type.
 
-Document Type: {{{documentType}}}
 Document: {{media url=documentDataUri}}
 
-Summary:`,
+Output:`,
 });
 
 const summarizeTermsAndConditionsFlow = ai.defineFlow<

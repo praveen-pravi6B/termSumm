@@ -1,7 +1,7 @@
 
 "use client";
 
-import type * as React from 'react';
+import * as React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,16 +19,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// Remove Select imports as they are no longer needed
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
-import type { SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
+// Update import path if necessary, ensure types align
+import type { SummarizeTermsAndConditionsInput, SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
 
 
 // Define the allowed MIME types
@@ -40,7 +42,7 @@ const ALLOWED_MIME_TYPES = [
 ];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-// Zod schema for form validation
+// Zod schema for form validation - remove documentType
 const formSchema = z.object({
   document: z
     .custom<FileList>((val) => val instanceof FileList, "Input required")
@@ -54,11 +56,12 @@ const formSchema = z.object({
       (files) => Array.from(files).every((file) => ALLOWED_MIME_TYPES.includes(file.type)),
       "Only .pdf, .doc, .docx, .txt files are accepted."
     ),
-  documentType: z.string().min(1, 'Document type is required.'),
+  // Removed: documentType: z.string().min(1, 'Document type is required.'),
 });
 
 type UploadFormProps = {
-  onSubmit: (data: { documentDataUri: string; documentType: string }) => Promise<SummarizeTermsAndConditionsOutput | null>;
+  // Update onSubmit prop to expect the new input type
+  onSubmit: (data: SummarizeTermsAndConditionsInput) => Promise<SummarizeTermsAndConditionsOutput | null>;
   setSummary: (summary: SummarizeTermsAndConditionsOutput | null) => void;
 };
 
@@ -71,7 +74,7 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       document: undefined,
-      documentType: '',
+      // Removed: documentType: '',
     },
   });
 
@@ -85,11 +88,12 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
     });
   };
 
-  // Handle form submission
+  // Handle form submission - remove documentType handling
   const handleFormSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setSummary(null); // Clear previous summary
-    setFileName(null); // Clear file name
+    // Keep fileName logic if desired for UI feedback
+    // setFileName(null);
 
     try {
       const file = values.document[0];
@@ -104,11 +108,13 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
       }
 
       const documentDataUri = await readFileAsDataURI(file);
+      // Keep setting filename for UI display before clearing
       setFileName(file.name);
 
+      // Call onSubmit with only the documentDataUri
       const result = await onSubmit({
         documentDataUri,
-        documentType: values.documentType,
+        // Removed: documentType: values.documentType,
       });
 
       if (result) {
@@ -118,13 +124,13 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
           description: "Your document has been summarized.",
         });
         form.reset(); // Reset form after successful submission
-         // Clear file name display
-        // Reset the file input visually if possible (complex, might need direct DOM manipulation or key prop change)
+        setFileName(null); // Clear file name display after successful submission
+
+        // Reset the file input visually
         const fileInput = document.getElementById('document-upload') as HTMLInputElement | null;
         if (fileInput) {
-            fileInput.value = ''; // This might not always trigger a UI reset depending on the browser
+            fileInput.value = '';
         }
-
 
       } else {
          toast({
@@ -144,6 +150,12 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
          description: errorMessage,
          variant: "destructive",
        });
+       // Clear filename on error as well
+       setFileName(null);
+       const fileInput = document.getElementById('document-upload') as HTMLInputElement | null;
+        if (fileInput) {
+            fileInput.value = '';
+        }
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +194,7 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
                                               {fileName ? (
                                                   <>
                                                      <FileText className="w-8 h-8 mb-2 text-primary" />
-                                                     <p className="text-sm text-foreground">{fileName}</p>
+                                                     <p className="text-sm text-foreground truncate max-w-[90%]">{fileName}</p>
                                                   </>
                                               ) : (
                                                   <>
@@ -200,39 +212,22 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
                           )}
                       />
 
+                      {/* Remove the documentType FormField */}
+                      {/*
                       <FormField
                           control={form.control}
                           name="documentType"
                           render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Document Type</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                                      <FormControl>
-                                          <SelectTrigger>
-                                              <SelectValue placeholder="Select document type" />
-                                          </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                          <SelectItem value="legal">Legal Document</SelectItem>
-                                          <SelectItem value="user agreement">User Agreement</SelectItem>
-                                          <SelectItem value="privacy policy">Privacy Policy</SelectItem>
-                                          <SelectItem value="service agreement">Service Agreement</SelectItem>
-                                          <SelectItem value="other">Other</SelectItem>
-                                      </SelectContent>
-                                  </Select>
-                                  <FormDescription>
-                                      This helps tailor the summary tone.
-                                  </FormDescription>
-                                  <FormMessage />
-                              </FormItem>
+                              // ... Select component removed ...
                           )}
                       />
+                      */}
 
                       <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
                           {isLoading ? (
                               <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Summarizing...
+                                  Analyzing & Summarizing...
                               </>
                           ) : (
                               'Summarize Document'
@@ -244,4 +239,4 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
       </Card>
   );
 }
-
+```
