@@ -19,14 +19,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-// Remove Select imports as they are no longer needed
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 // Update import path if necessary, ensure types align
@@ -56,7 +48,6 @@ const formSchema = z.object({
       (files) => Array.from(files).every((file) => ALLOWED_MIME_TYPES.includes(file.type)),
       "Only .pdf, .doc, .docx, .txt files are accepted."
     ),
-  // Removed: documentType: z.string().min(1, 'Document type is required.'),
 });
 
 type UploadFormProps = {
@@ -74,7 +65,6 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       document: undefined,
-      // Removed: documentType: '',
     },
   });
 
@@ -92,8 +82,6 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
   const handleFormSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setSummary(null); // Clear previous summary
-    // Keep fileName logic if desired for UI feedback
-    // setFileName(null);
 
     try {
       const file = values.document[0];
@@ -109,19 +97,17 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
 
       const documentDataUri = await readFileAsDataURI(file);
       // Keep setting filename for UI display before clearing
-      setFileName(file.name);
+      // No need to setFileName here as the form will be hidden during loading
+      // setFileName(file.name);
 
       // Call onSubmit with only the documentDataUri
-      const result = await onSubmit({
-        documentDataUri,
-        // Removed: documentType: values.documentType,
-      });
+      const result = await onSubmit({ documentDataUri });
 
       if (result) {
         setSummary(result);
         toast({
           title: "Success!",
-          description: "Your document has been summarized.",
+          description: "Your document has been analyzed.",
         });
         form.reset(); // Reset form after successful submission
         setFileName(null); // Clear file name display after successful submission
@@ -134,10 +120,11 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
 
       } else {
          toast({
-            title: "Summarization Failed",
-            description: "Could not summarize the document. Please try again.",
+            title: "Analysis Failed",
+            description: "Could not analyze the document. Please try again.",
             variant: "destructive",
           });
+          setFileName(null); // Clear filename on error as well
       }
     } catch (error) {
        console.error('Error during form submission:', error);
@@ -166,76 +153,73 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
   return (
       <Card className="w-full max-w-lg mx-auto shadow-lg">
           <CardHeader>
-              <CardTitle className="text-center text-2xl font-semibold">Upload Document</CardTitle>
+              <CardTitle className="text-center text-xl md:text-2xl font-semibold">Upload Document</CardTitle>
           </CardHeader>
           <CardContent>
-              <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-                      <FormField
-                          control={form.control}
-                          name="document"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Terms & Conditions Document</FormLabel>
-                                  <FormControl>
-                                      <div className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-border hover:border-primary transition-colors">
-                                           <Input
-                                               id="document-upload"
-                                               type="file"
-                                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                               accept=".pdf,.doc,.docx,.txt"
-                                               {...fileRef}
-                                               onChange={(e) => {
-                                                field.onChange(e.target.files);
-                                                setFileName(e.target.files?.[0]?.name || null);
-                                               }}
-                                           />
-                                           <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                                              {fileName ? (
-                                                  <>
-                                                     <FileText className="w-8 h-8 mb-2 text-primary" />
-                                                     <p className="text-sm text-foreground truncate max-w-[90%]">{fileName}</p>
-                                                  </>
-                                              ) : (
-                                                  <>
-                                                     <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
-                                                     <p className="mb-1 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                                     <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, TXT (MAX. 5MB)</p>
-                                                  </>
-                                              )}
-                                           </div>
+              {isLoading ? (
+                  <div className="flex flex-col items-center justify-center space-y-4 py-10">
+                      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                      <p className="text-lg font-medium text-muted-foreground">Analyzing & Summarizing...</p>
+                      <p className="text-sm text-muted-foreground">This may take a moment.</p>
+                  </div>
+              ) : (
+                  <Form {...form}>
+                      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 md:space-y-6">
+                          <FormField
+                              control={form.control}
+                              name="document"
+                              render={({ field }) => (
+                                  <FormItem>
+                                      <FormLabel className="sr-only">Terms & Conditions Document</FormLabel>
+                                      <FormControl>
+                                          <div className="relative flex flex-col items-center justify-center w-full h-40 md:h-48 border-2 border-dashed rounded-lg cursor-pointer border-border hover:border-primary transition-colors bg-background hover:bg-muted/50">
+                                               <Input
+                                                   id="document-upload"
+                                                   type="file"
+                                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                   accept=".pdf,.doc,.docx,.txt"
+                                                   {...fileRef}
+                                                   onChange={(e) => {
+                                                    field.onChange(e.target.files);
+                                                    setFileName(e.target.files?.[0]?.name || null);
+                                                   }}
+                                                   disabled={isLoading} // Disable while loading
+                                               />
+                                               <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                                                  {fileName ? (
+                                                      <>
+                                                         <FileText className="w-10 h-10 mb-3 text-primary" />
+                                                         <p className="text-sm font-medium text-foreground truncate max-w-[90%]">{fileName}</p>
+                                                         <p className="text-xs text-muted-foreground mt-1">Click button below to analyze</p>
+                                                      </>
+                                                  ) : (
+                                                      <>
+                                                         <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                                                         <p className="mb-1 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span> or drag and drop</p>
+                                                         <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, TXT (MAX. 5MB)</p>
+                                                      </>
+                                                  )}
+                                               </div>
+                                          </div>
+                                      </FormControl>
+                                      <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
 
-                                      </div>
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-
-                      {/* Remove the documentType FormField */}
-                      {/*
-                      <FormField
-                          control={form.control}
-                          name="documentType"
-                          render={({ field }) => (
-                              // ... Select component removed ...
-                          )}
-                      />
-                      */}
-
-                      <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
-                          {isLoading ? (
-                              <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Analyzing & Summarizing...
-                              </>
-                          ) : (
-                              'Summarize Document'
-                          )}
-                      </Button>
-                  </form>
-              </Form>
+                          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-base" disabled={isLoading || !form.formState.isValid}>
+                              {isLoading ? (
+                                  // This part is inside the conditional loading block now
+                                  'Processing...'
+                              ) : (
+                                  'Analyze & Summarize'
+                              )}
+                          </Button>
+                      </form>
+                  </Form>
+              )}
           </CardContent>
       </Card>
   );
 }
+
