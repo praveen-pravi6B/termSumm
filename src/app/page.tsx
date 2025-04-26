@@ -65,24 +65,35 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-start p-6 md:p-12 lg:p-24 bg-gradient-to-br from-background via-secondary/10 to-background">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex mb-12 text-center">
          <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4 tracking-tight w-full">
-          TermSumm: AI T&amp;C Analysis
+          AI Terms &amp; Conditions Analyzer
         </h1>
          <p className="text-muted-foreground w-full">
-          Upload your terms & conditions for an AI-powered summary, including pros and cons.
+          Upload any T&amp;C document (PDF, DOCX, TXT) for a clear summary, pros, and cons.
         </p>
       </div>
 
       <div className="w-full flex flex-col items-center space-y-8">
-        {/* Pass the client-side handler and loading state to UploadForm */}
-        <UploadForm
+        {/* Conditionally render UploadForm based on isLoading state */}
+        {!isLoading && (
+          <UploadForm
             onSubmit={handleSummarization}
             isLoading={isLoading}
-            setIsLoading={setIsLoading} // Pass setIsLoading if UploadForm still manages its own loading indicator text/button state
-            setSummary={setSummary} // Keep passing setSummary if UploadForm needs to clear it internally
-        />
+            setIsLoading={setIsLoading}
+            setSummary={setSummary}
+          />
+        )}
 
         {/* Attach the ref to the SummaryDisplay container */}
         <div ref={summaryRef} className="w-full">
+            {/* Show loading indicator here if needed, or rely on UploadForm's disappearance */}
+             {isLoading && (
+                 <div className="flex flex-col items-center justify-center space-y-4 py-10">
+                     {/* Consistent Loading indicator */}
+                     {/* <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                     <p className="text-lg font-medium text-muted-foreground">Analyzing & Summarizing...</p>
+                     <p className="text-sm text-muted-foreground">This may take a moment.</p> */}
+                 </div>
+             )}
             {summary && !isLoading && <SummaryDisplay summaryData={summary} />}
         </div>
       </div>
