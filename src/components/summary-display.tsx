@@ -84,4 +84,3 @@ export function SummaryDisplay({ summaryData }: SummaryDisplayProps) {
     </Card>
   );
 }
-```

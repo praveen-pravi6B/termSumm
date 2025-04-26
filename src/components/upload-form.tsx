@@ -239,4 +239,3 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
       </Card>
   );
 }
-```
