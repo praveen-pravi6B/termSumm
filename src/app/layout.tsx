@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"; // Import Toaster
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider"; // Import ThemeProvider
+import { ThemeToggle } from '@/components/theme-toggle'; // Import ThemeToggle
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -14,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'TermSumm', // Updated title
-  description: 'Summarize terms and conditions with AI.', // Updated description
+  title: 'TermSumm',
+  description: 'Summarize terms and conditions with AI.',
 };
 
 export default function RootLayout({
@@ -24,10 +26,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning> {/* Add suppressHydrationWarning for next-themes */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
-        <Toaster /> {/* Add Toaster component */}
+         <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="absolute top-4 right-4 z-50"> {/* Position theme toggle */}
+              <ThemeToggle />
+            </div>
+            {children}
+            <Toaster />
+         </ThemeProvider>
       </body>
     </html>
   );
