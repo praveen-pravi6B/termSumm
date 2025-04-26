@@ -63,14 +63,16 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-start p-6 md:p-12 lg:p-24 bg-gradient-to-br from-background via-secondary/10 to-background">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex mb-12 text-center">
-         <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4 tracking-tight w-full">
+      {/* Updated Header Section */}
+      <div className="z-10 w-full max-w-5xl items-center text-center mb-12">
+         <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 tracking-tight w-full">
           AI Terms &amp; Conditions Analyzer
         </h1>
-         <p className="text-muted-foreground w-full">
+         <p className="text-muted-foreground w-full text-sm md:text-base">
           Upload any T&amp;C document (PDF, DOCX, TXT) for a clear summary, pros, and cons.
         </p>
       </div>
+      {/* End of Updated Header Section */}
 
       <div className="w-full flex flex-col items-center space-y-8">
         {/* Conditionally render UploadForm based on isLoading state */}
@@ -104,3 +106,4 @@ export default function Home() {
     </main>
   );
 }
+
