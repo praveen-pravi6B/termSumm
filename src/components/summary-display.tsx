@@ -65,7 +65,8 @@ export const SummaryDisplay = React.forwardRef<HTMLDivElement, SummaryDisplayPro
                         description: "Press play to listen to the summary.",
                     });
                 } else {
-                    console.error("Audio generation failed:", result.errorMessage);
+                    // Use console.warn as this is expected simulation behavior
+                    console.warn("Audio generation failed (simulation):", result.errorMessage);
                     toast({
                         title: "Audio Generation Failed",
                         description: result.errorMessage || "Could not generate audio for the summary.",
@@ -88,6 +89,7 @@ export const SummaryDisplay = React.forwardRef<HTMLDivElement, SummaryDisplayPro
         const formattedSummary = summary
             .split('\n\n')
             .map((paragraph, index) => (
+            // Use React.Fragment shorthand <>
             <p key={`summary-${index}`} className="mb-4 last:mb-0">
                 {paragraph.split('\n').map((line, lineIndex) => (
                 <React.Fragment key={`summary-line-${index}-${lineIndex}`}>
@@ -148,6 +150,7 @@ export const SummaryDisplay = React.forwardRef<HTMLDivElement, SummaryDisplayPro
                             </audio>
                         )}
                         <ScrollArea className="h-48 w-full rounded-md border p-4 bg-muted/30">
+                            {/* Use Tailwind Typography for better text rendering */}
                             <div className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed">
                                 {formattedSummary}
                             </div>

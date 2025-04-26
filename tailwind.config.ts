@@ -127,12 +127,38 @@ export default {
                 '--tw-prose-invert-pre-bg': theme('colors.muted'),
                 '--tw-prose-invert-th-borders': theme('colors.border'),
                 '--tw-prose-invert-td-borders': theme('colors.border'),
-                p: { // Add specific styling for paragraphs if needed
-                    marginTop: theme('spacing.4'),
-                    marginBottom: theme('spacing.4'),
-                  },
+                // Apply prose styles globally or scope as needed
+                'p': {
+                  marginTop: theme('spacing.4'),
+                  marginBottom: theme('spacing.4'),
+                  lineHeight: theme('lineHeight.relaxed'), // Add relaxed line height
+                },
+                'h1, h2, h3, h4, h5, h6': {
+                  marginTop: theme('spacing.6'),
+                  marginBottom: theme('spacing.3'),
+                },
+                // Add more element styling as needed
               },
             },
+             sm: { // Add prose-sm configuration
+                css: {
+                    p: {
+                      marginTop: theme('spacing.3'),
+                      marginBottom: theme('spacing.3'),
+                    },
+                    'h1, h2, h3, h4, h5, h6': {
+                      marginTop: theme('spacing.5'),
+                      marginBottom: theme('spacing.2'),
+                    },
+                 },
+            },
+             dark: { // Dark mode prose styles
+                 css: {
+                     '--tw-prose-body': theme('colors.foreground'),
+                     '--tw-prose-headings': theme('colors.primary'),
+                     // Add other dark mode overrides as needed
+                 },
+             },
           }),
   	}
   },
