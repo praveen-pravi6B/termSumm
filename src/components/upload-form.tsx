@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,12 +19,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from "@/hooks/use-toast";
-// Update import path if necessary, ensure types align
+// Removed useToast import as it's now handled in page.tsx
 import type { SummarizeTermsAndConditionsInput, SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
 
-
-// Define the allowed MIME types
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'application/msword',
@@ -34,7 +30,6 @@ const ALLOWED_MIME_TYPES = [
 ];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-// Zod schema for form validation - remove documentType
 const formSchema = z.object({
   document: z
     .custom<FileList>((val) => val instanceof FileList, "Input required")
@@ -51,15 +46,16 @@ const formSchema = z.object({
 });
 
 type UploadFormProps = {
-  // Update onSubmit prop to expect the new input type
   onSubmit: (data: SummarizeTermsAndConditionsInput) => Promise<SummarizeTermsAndConditionsOutput | null>;
+  isLoading: boolean; // Receive loading state from parent
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; // To control parent state if needed
   setSummary: (summary: SummarizeTermsAndConditionsOutput | null) => void;
 };
 
-export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export function UploadForm({ onSubmit, isLoading, setIsLoading, setSummary }: UploadFormProps) {
+  // Removed internal isLoading state, using prop instead
   const [fileName, setFileName] = useState<string | null>(null);
-  const { toast } = useToast();
+  // Removed toast instance
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,83 +64,55 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
     },
   });
 
-  // Function to read file as data URI
   const readFileAsDataURI = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
+      reader.readDataURL(file);
     });
   };
 
-  // Handle form submission - remove documentType handling
   const handleFormSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
-    setSummary(null); // Clear previous summary
+    // Removed setting internal loading state
+    // setSummary(null); // Parent now handles clearing summary
 
     try {
       const file = values.document[0];
       if (!file) {
-        toast({
-            title: "Error",
-            description: "No file selected.",
-            variant: "destructive",
-          });
-        setIsLoading(false);
+        // Optionally show a form-specific error message if needed, but toast is handled by parent
+        console.error("No file selected.");
         return;
       }
 
       const documentDataUri = await readFileAsDataURI(file);
-      // Keep setting filename for UI display before clearing
-      // No need to setFileName here as the form will be hidden during loading
-      // setFileName(file.name);
 
-      // Call onSubmit with only the documentDataUri
+      // Call the onSubmit passed from the parent (which handles state and toast)
       const result = await onSubmit({ documentDataUri });
 
       if (result) {
-        setSummary(result);
-        toast({
-          title: "Success!",
-          description: "Your document has been analyzed.",
-        });
-        form.reset(); // Reset form after successful submission
-        setFileName(null); // Clear file name display after successful submission
-
-        // Reset the file input visually
+        // Reset form only on success
+        form.reset();
+        setFileName(null);
         const fileInput = document.getElementById('document-upload') as HTMLInputElement | null;
         if (fileInput) {
             fileInput.value = '';
         }
-
       } else {
-         toast({
-            title: "Analysis Failed",
-            description: "Could not analyze the document. Please try again.",
-            variant: "destructive",
-          });
-          setFileName(null); // Clear filename on error as well
+         // Handle failure case if needed (e.g., clear filename), toast handled by parent
+         setFileName(null);
       }
     } catch (error) {
-       console.error('Error during form submission:', error);
-        let errorMessage = "An unexpected error occurred.";
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        }
-       toast({
-         title: "Error",
-         description: errorMessage,
-         variant: "destructive",
-       });
-       // Clear filename on error as well
+       console.error('Error during form submission in UploadForm:', error);
+       // Clear filename on error, toast handled by parent
        setFileName(null);
        const fileInput = document.getElementById('document-upload') as HTMLInputElement | null;
         if (fileInput) {
             fileInput.value = '';
         }
+        // Re-throw or handle error locally if needed, but parent handles the main error reporting
     } finally {
-      setIsLoading(false);
+      // Removed setting internal loading state
     }
   };
 
@@ -183,7 +151,7 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
                                                     field.onChange(e.target.files);
                                                     setFileName(e.target.files?.[0]?.name || null);
                                                    }}
-                                                   disabled={isLoading} // Disable while loading
+                                                   disabled={isLoading} // Use prop isLoading
                                                />
                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
                                                   {fileName ? (
@@ -208,12 +176,7 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
                           />
 
                           <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-base" disabled={isLoading || !form.formState.isValid}>
-                              {isLoading ? (
-                                  // This part is inside the conditional loading block now
-                                  'Processing...'
-                              ) : (
-                                  'Analyze & Summarize'
-                              )}
+                              {isLoading ? 'Processing...' : 'Analyze & Summarize'}
                           </Button>
                       </form>
                   </Form>
@@ -222,4 +185,3 @@ export function UploadForm({ onSubmit, setSummary }: UploadFormProps) {
       </Card>
   );
 }
-

@@ -1,20 +1,20 @@
 
 "use server";
 
-// Update imports for the modified flow
 import { summarizeTermsAndConditions, type SummarizeTermsAndConditionsInput, type SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
-// Removed redundant import: import { tailorSummaryToDocumentType, type TailorSummaryToDocumentTypeInput, type TailorSummaryToDocumentTypeOutput } from '@/ai/flows/tailor-summary-to-document-type';
 
-
-// Update the function signature to accept the modified input type
-export async function handleSummarization(input: SummarizeTermsAndConditionsInput): Promise<SummarizeTermsAndConditionsOutput | null> {
+// Rename to avoid conflict with client-side handler in page.tsx
+export async function serverHandleSummarization(input: SummarizeTermsAndConditionsInput): Promise<SummarizeTermsAndConditionsOutput | null> {
   try {
-    // Call the updated flow which now handles document type identification
     const result = await summarizeTermsAndConditions(input);
     console.log("Summarization successful:", result);
     return result;
   } catch (error) {
-    console.error("Error during summarization flow:", error);
-    return null;
+    // Log the detailed error on the server
+    console.error("Error during server summarization flow:", error);
+    // Optionally, return a more specific error structure or re-throw
+    // Re-throwing might be better for the client to catch specific errors if needed
+    // throw new Error("Summarization failed on the server.");
+    return null; // Keep returning null for simplicity based on previous structure
   }
 }
