@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, UploadCloud, FileText } from 'lucide-react';
+import { UploadCloud, FileText } from 'lucide-react'; // Removed Loader2
 
 import { Button } from '@/components/ui/button';
 import {
@@ -46,12 +46,11 @@ const formSchema = z.object({
 
 type UploadFormProps = {
   onSubmit: (data: SummarizeTermsAndConditionsInput) => Promise<SummarizeTermsAndConditionsOutput | null>;
-  isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setSummary: (summary: SummarizeTermsAndConditionsOutput | null) => void;
+  isLoading: boolean; // Still needed to disable elements
+  // Removed setIsLoading and setSummary as they are not directly used for loading display here anymore
 };
 
-export function UploadForm({ onSubmit, isLoading, setIsLoading, setSummary }: UploadFormProps) {
+export function UploadForm({ onSubmit, isLoading }: UploadFormProps) {
   const [fileName, setFileName] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,8 +65,7 @@ export function UploadForm({ onSubmit, isLoading, setIsLoading, setSummary }: Up
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
-      // Ensure the correct method name is used: readAsDataURL
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); // Corrected method name
     });
   };
 
@@ -80,7 +78,7 @@ export function UploadForm({ onSubmit, isLoading, setIsLoading, setSummary }: Up
       }
 
       const documentDataUri = await readFileAsDataURI(file);
-      const result = await onSubmit({ documentDataUri });
+      const result = await onSubmit({ documentDataUri }); // onSubmit now handles setIsLoading
 
       if (result) {
         form.reset();
@@ -90,34 +88,24 @@ export function UploadForm({ onSubmit, isLoading, setIsLoading, setSummary }: Up
             fileInput.value = '';
         }
       } else {
-         setFileName(null);
+         setFileName(null); // Clear filename even on failure
       }
     } catch (error) {
        console.error('Error during form submission in UploadForm:', error);
-       setFileName(null);
+       setFileName(null); // Clear filename on error
        const fileInput = document.getElementById('document-upload') as HTMLInputElement | null;
         if (fileInput) {
             fileInput.value = '';
         }
+       // Error handling (toast) is done in page.tsx
     }
+    // Do not set isLoading here, it's managed by the caller (page.tsx)
   };
 
   const fileRef = form.register("document");
 
-  // Hide the form completely when loading
-  if (isLoading) {
-    return (
-       <Card className="w-full max-w-lg mx-auto shadow-lg">
-            <CardContent className="pt-6"> {/* Add padding top for CardContent when loading */}
-                <div className="flex flex-col items-center justify-center space-y-4 py-10">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                    <p className="text-lg font-medium text-muted-foreground">Analyzing & Summarizing...</p>
-                    <p className="text-sm text-muted-foreground">This may take a moment.</p>
-                </div>
-            </CardContent>
-        </Card>
-    );
-  }
+  // The form is now rendered or not rendered based on isLoading in page.tsx
+  // No internal loading state display needed here.
 
   return (
       <Card className="w-full max-w-lg mx-auto shadow-lg">
@@ -145,7 +133,7 @@ export function UploadForm({ onSubmit, isLoading, setIsLoading, setSummary }: Up
                                                 field.onChange(e.target.files);
                                                 setFileName(e.target.files?.[0]?.name || null);
                                                }}
-                                               disabled={isLoading}
+                                               disabled={isLoading} // Disable input while loading
                                            />
                                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
                                               {fileName ? (
@@ -170,7 +158,8 @@ export function UploadForm({ onSubmit, isLoading, setIsLoading, setSummary }: Up
                       />
 
                       <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-base" disabled={isLoading || !form.formState.isValid || !fileName}>
-                          {isLoading ? 'Processing...' : 'Analyze & Summarize'}
+                          {/* Button text changes are handled implicitly by disabling */}
+                          Analyze & Summarize
                       </Button>
                   </form>
               </Form>

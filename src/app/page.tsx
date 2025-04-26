@@ -7,6 +7,8 @@ import { SummaryDisplay } from '@/components/summary-display';
 import { serverHandleSummarization } from './actions'; // Correctly import the exported function name
 import type { SummarizeTermsAndConditionsInput, SummarizeTermsAndConditionsOutput } from '@/ai/flows/summarize-terms-and-conditions';
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { Loader2 } from 'lucide-react'; // Import Loader2 for loading indicator
+import { Card, CardContent } from '@/components/ui/card'; // Import Card for loading state
 
 export default function Home() {
   const [summary, setSummary] = useState<SummarizeTermsAndConditionsOutput | null>(null);
@@ -16,10 +18,10 @@ export default function Home() {
 
   // Effect to scroll to the summary when it appears
   useEffect(() => {
-    if (summary && summaryRef.current) {
+    if (summary && summaryRef.current && !isLoading) { // Ensure not loading when scrolling
       summaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [summary]); // Dependency array ensures this runs only when summary changes
+  }, [summary, isLoading]); // Add isLoading to dependency array
 
   // Client-side handler that wraps the server action and manages state/scrolling
   const handleSummarization = async (input: SummarizeTermsAndConditionsInput): Promise<SummarizeTermsAndConditionsOutput | null> => {
@@ -30,7 +32,7 @@ export default function Home() {
       const result = await serverHandleSummarization(input); // Call the server action
 
       if (result) {
-        setSummary(result); // Set summary, triggering the useEffect for scrolling
+        setSummary(result); // Set summary, triggering the useEffect for scrolling after loading finishes
         toast({
           title: "Success!",
           description: "Your document has been analyzed.",
@@ -56,7 +58,7 @@ export default function Home() {
        });
        return null; // Return null on error
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Set loading to false after operation completes (success or error)
     }
   };
 
@@ -77,27 +79,28 @@ export default function Home() {
 
       {/* Content area that grows */}
       <div className="w-full flex flex-col items-center space-y-8 flex-grow">
-        {/* Conditionally render UploadForm based on isLoading state */}
-        {!isLoading && (
+        {/* Conditionally render UploadForm OR Loading Indicator */}
+        {isLoading ? (
+           <Card className="w-full max-w-lg mx-auto shadow-lg">
+                <CardContent className="pt-6"> {/* Add padding top for CardContent */}
+                    <div className="flex flex-col items-center justify-center space-y-4 py-10">
+                        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                        <p className="text-lg font-medium text-muted-foreground">Analyzing & Summarizing...</p>
+                        <p className="text-sm text-muted-foreground">This may take a moment.</p>
+                    </div>
+                </CardContent>
+            </Card>
+        ) : (
           <UploadForm
             onSubmit={handleSummarization}
             isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            setSummary={setSummary}
+            // Pass only necessary props
           />
         )}
 
         {/* Attach the ref to the SummaryDisplay container */}
+        {/* SummaryDisplay is only rendered when summary exists AND not loading */}
         <div ref={summaryRef} className="w-full">
-            {/* Show loading indicator here if needed, or rely on UploadForm's disappearance */}
-             {isLoading && (
-                 <div className="flex flex-col items-center justify-center space-y-4 py-10">
-                     {/* Consistent Loading indicator */}
-                     {/* <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                     <p className="text-lg font-medium text-muted-foreground">Analyzing & Summarizing...</p>
-                     <p className="text-sm text-muted-foreground">This may take a moment.</p> */}
-                 </div>
-             )}
             {summary && !isLoading && <SummaryDisplay summaryData={summary} />}
         </div>
       </div>
